@@ -6,6 +6,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,7 +24,7 @@ import java.util.TimerTask;
 
 
 public class ChooseSongActivity extends ActionBarActivity {
-
+    AudioManager audioManager;
     ArrayList<MusicSet> folders = new ArrayList<MusicSet>();
 
     public int timeLeft;
@@ -41,6 +42,7 @@ public class ChooseSongActivity extends ActionBarActivity {
 
         prefs = getPreferences( MODE_PRIVATE );
 
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         folderDir = new File( Environment.getExternalStorageDirectory() + "/simplesongs/" );
 
@@ -93,6 +95,7 @@ public class ChooseSongActivity extends ActionBarActivity {
         int pos;
         String[] files;
         StopMusic stopMusic = new StopMusic();
+        FadeMusic fadeMusic = new FadeMusic();
         Timer timer;
 
         int onTrack = 0;
@@ -148,10 +151,12 @@ public class ChooseSongActivity extends ActionBarActivity {
                     mp.setDataSource( url );
                     mp.prepare();
 
+                    Log.e( "S", "start 1" );
                     mp.start();
                     timer = new Timer();
                     stopMusic = new StopMusic();
-                    timer.schedule( stopMusic, minutes * 60 * 1000 );
+                    fadeMusic = new FadeMusic();
+                    timer.schedule( fadeMusic, minutes * 60 * 1000 );
                 } catch( IllegalArgumentException e )
                 {
                     Log.e( "SS", e.toString() );
@@ -216,11 +221,13 @@ public class ChooseSongActivity extends ActionBarActivity {
                         mp.prepare();
                     }
 
+                    Log.e( "S", "start 2" );
                     mp.start();
-                    mp.setOnCompletionListener( this );
+                    mp.setOnCompletionListener(this);
                     timer = new Timer();
                     stopMusic = new StopMusic();
-                    timer.schedule( stopMusic, minutes * 60 * 1000 );
+                    fadeMusic = new FadeMusic();
+                    timer.schedule( fadeMusic, minutes * 60 * 1000 );
                 } catch( IllegalArgumentException e )
                 {
                     Log.e( "SS", e.toString() );
@@ -270,6 +277,7 @@ public class ChooseSongActivity extends ActionBarActivity {
                     mp.setDataSource( Environment.getExternalStorageDirectory() + "/simplesongs/" + "f" + pos + "/" + files[onTrack] );
                     //Log.e( "SS", files[onTrack] );
                     mp.prepare();
+                    Log.e( "S", "start 3" );
                     mp.start();
                 } catch( IllegalArgumentException e )
                 {
@@ -300,6 +308,47 @@ public class ChooseSongActivity extends ActionBarActivity {
             }
         }
 
+        public class FadeMusic extends TimerTask
+        {
+            boolean fading = false;
+            float volume;
+            float deviceVolume;
+            float duration = 20*1000;
+            float timeLeft = duration;
+
+            public void run()
+            {
+                if( !fading )
+                {
+                    fading = true;
+                    deviceVolume = getDeviceVolume();
+                }
+
+                Log.d( "TIMELEFT", timeLeft + "" );
+
+                if( timeLeft > 0 )
+                {
+                    timeLeft -= 100;
+                    volume = (deviceVolume * timeLeft) / duration;
+                    mp.setVolume( volume, volume );
+                    timer = new Timer();
+                    fadeMusic = new FadeMusic();
+                    fadeMusic.timeLeft = timeLeft - 100;
+                    fadeMusic.fading = true;
+                    fadeMusic.deviceVolume = deviceVolume;
+                    timer.schedule( fadeMusic, 100 );
+                }
+                else
+                {
+                    setPrefInt("set" + pos, (minutesToPlay * 1000 * 60) + lastTime);
+                    mp.stop();
+                    if( !streamSet ) {
+                        onTrack = files.length;
+                    }
+                }
+            }
+        }
+
         public class StartMusic implements Runnable
         {
             public void run()
@@ -309,6 +358,52 @@ public class ChooseSongActivity extends ActionBarActivity {
                 timesClicked = 0;
             }
         }
+    }
+
+    public void fadeOut(final MediaPlayer _player, final int duration) {
+        final float deviceVolume = getDeviceVolume();
+        final Handler h = new Handler();
+        h.postDelayed(new Runnable() {
+            private float time = duration;
+            private float volume = 0.0f;
+
+            @Override
+            public void run() {
+                try {
+                    if (!_player.isPlaying())
+                        _player.start();
+                } catch( Exception ex )
+                {
+                    buttonDebug( "error 1" );
+                    h.postDelayed( this, 100 );
+                    return;
+                }
+                // can call h again after work!
+                buttonDebug( "fade " + time );
+                time -= 100;
+                volume = (deviceVolume * time) / duration;
+                _player.setVolume(volume, volume);
+                if (time > 0)
+                    h.postDelayed(this, 100);
+                else {
+                    _player.stop();
+                    _player.release();
+                }
+            }
+        }, 100); // 1 second delay (takes millis)
+    }
+
+    public float getDeviceVolume() {
+        int volumeLevel = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+
+        return (float) volumeLevel / maxVolume;
+    }
+
+    public void buttonDebug( String s )
+    {
+        Button b = (Button)findViewById( R.id.b_d );
+        b.setText( s );
     }
 
     /*

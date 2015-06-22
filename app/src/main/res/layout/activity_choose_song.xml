@@ -10,43 +10,50 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
 
-        <Button
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:text="A"
-            android:id="@+id/b_a"
-            android:layout_gravity="center_horizontal"
-            android:layout_weight="1" />
+            android:layout_weight="1">
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:text="B"
-            android:id="@+id/b_b"
-            android:layout_gravity="center_horizontal"
-            android:layout_weight="1" />
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:text="A"
+                android:id="@+id/b_a"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="1" />
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:text="C"
-            android:id="@+id/b_c"
-            android:layout_gravity="center_horizontal"
-            android:layout_weight="1" />
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:text="B"
+                android:id="@+id/b_b"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="1" />
+        </LinearLayout>
 
-        <Button
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:text="D"
-            android:id="@+id/b_d"
-            android:layout_gravity="center_horizontal"
-            android:layout_weight="1" />
+            android:layout_weight="1">
 
-        <MediaController
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:id="@+id/mediaController"
-            android:layout_gravity="center_horizontal"
-            android:layout_weight="0.47" />
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:text="C"
+                android:id="@+id/b_c"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="1" />
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:text="D"
+                android:id="@+id/b_d"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="1" />
+        </LinearLayout>
     </LinearLayout>
 </RelativeLayout>
